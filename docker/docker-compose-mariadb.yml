@@ -6,6 +6,6 @@ services:
     image: mariadb:${MARIADB_VERSION:-latest}
     # Deploy
     environment:
-      MARIADB_ROOT_PASSWORD: ${DATABASE_PASSWORD:-root}
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
     ports:
     - "${DB_PORT:-3306}:3306"
