@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile
       target: app_database
       args:
-        MARIADB_VERSION: ${MARIADB_VERSION:-10.5}
+        MARIADB_VERSION: ${MARIADB_VERSION:-11.5}
     # Deploy
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
@@ -28,7 +28,7 @@ services:
       dockerfile: Dockerfile
       target: app_importer
       args:
-        MARIADB_VERSION: ${MARIADB_VERSION:-10.5}
+        MARIADB_VERSION: ${MARIADB_VERSION:-11.5}
     # Deploy
     environment:
       DB_USER: root
