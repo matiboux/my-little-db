@@ -12,6 +12,13 @@ FROM mariadb:${MARIADB_VERSION} AS mariadb_upstream
 
 
 # --
+# Database image
+
+FROM mariadb_upstream AS app_database
+# No changes to the upstream image
+
+
+# --
 # Importer script image
 
 FROM mariadb_upstream AS app_importer

@@ -3,7 +3,12 @@ services:
 
   db:
     # Build
-    image: mariadb:${MARIADB_VERSION:-10.5}
+    build:
+      context: ../mariadb
+      dockerfile: Dockerfile
+      target: app_database
+      args:
+        MARIADB_VERSION: ${MARIADB_VERSION:-10.5}
     # Deploy
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
