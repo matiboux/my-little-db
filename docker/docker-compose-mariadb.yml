@@ -3,7 +3,7 @@ services:
 
   db:
     # Build
-    image: mariadb:${MARIADB_VERSION:-latest}
+    image: mariadb:${MARIADB_VERSION:-10.5}
     # Deploy
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
@@ -20,7 +20,10 @@ services:
     # Build
     build:
       context: ../mariadb
-      target: importer
+      dockerfile: Dockerfile
+      target: app_importer
+      args:
+        MARIADB_VERSION: ${MARIADB_VERSION:-10.5}
     # Deploy
     environment:
       DB_USER: root

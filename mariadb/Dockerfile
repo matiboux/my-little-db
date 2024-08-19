@@ -1,13 +1,25 @@
+#syntax=docker/dockerfile:1
+
+# This Dockerfile uses the service folder as context.
+
+
 # --
+# Upstream images
 
-ARG MARIADB_VERSION="latest"
+ARG MARIADB_VERSION='11.5'
 
-FROM mariadb:${MARIADB_VERSION} AS importer
+FROM mariadb:${MARIADB_VERSION} AS mariadb_upstream
+
+
+# --
+# Importer script image
+
+FROM mariadb_upstream AS app_importer
 
 WORKDIR /app
 
 # Copy the start scripts
-COPY ./importer.sh .
+COPY --link ./importer.sh .
 
 # Data should be mounted as a volume
 VOLUME /app/data
