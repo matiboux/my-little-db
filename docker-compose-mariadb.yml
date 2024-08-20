@@ -7,13 +7,13 @@ services:
     # Deploy
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
-    ports:
-    - "${DB_PORT:-3306}:3306"
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
+    ports:
+      - ${DB_PORT:-3306}:3306
 
   importer:
     # Build
@@ -21,6 +21,10 @@ services:
       context: ./mariadb
       target: importer
     # Deploy
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: false
     environment:
       DB_USER: root
       DB_PASSWORD: ${DB_PASSWORD:-root}
@@ -28,8 +32,4 @@ services:
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-db}
     volumes:
-    - ../mariadb/data:/app/data
-    depends_on:
-      db:
-        condition: service_healthy
-        restart: false
+      - ./mariadb/data:/app/data
