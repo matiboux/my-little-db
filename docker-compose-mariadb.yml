@@ -7,7 +7,8 @@ services:
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping" ]
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      start_period: 10s
       interval: 5s
       timeout: 5s
       retries: 5
