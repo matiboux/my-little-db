@@ -2,7 +2,7 @@ services:
 
   db:
     # Build
-    image: mariadb:${MARIADB_VERSION:-latest}
+    image: mariadb:${MARIADB_VERSION:-lts}
     # Deploy
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
