@@ -19,7 +19,7 @@ services:
     # Build
     build:
       context: ./mariadb
-      target: importer
+      target: app_importer
     # Deploy
     depends_on:
       db:
