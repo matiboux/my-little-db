@@ -17,7 +17,7 @@ services:
   db:
     # Build
     build:
-      context: ./mariadb
+      context: .
       dockerfile: Dockerfile
       target: app_database
       args:
@@ -37,7 +37,7 @@ services:
   importer:
     # Build
     build:
-      context: ./mariadb
+      context: .
       dockerfile: Dockerfile
       target: app_importer
       args:
@@ -50,4 +50,4 @@ services:
     environment:
       <<: [ *db-importer-environment ]
     volumes:
-      - ./mariadb/data:/app/data
+      - ./data:/app/data

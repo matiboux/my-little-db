@@ -24,7 +24,7 @@ services:
   db:
     # Build
     build:
-      context: ./postgres
+      context: .
       dockerfile: Dockerfile
       target: app_database
       args:
@@ -44,7 +44,7 @@ services:
   importer:
     # Build
     build:
-      context: ./postgres
+      context: .
       dockerfile: Dockerfile
       target: app_importer
       args:
@@ -57,4 +57,4 @@ services:
     environment:
       <<: [ *db-importer-environment ]
     volumes:
-      - ./postgres/data:/app/data
+      - ./data:/app/data
