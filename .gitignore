@@ -1,4 +1,13 @@
-/.env.local
-/.env.*.local
+# -- Generic rules:
 
+# Environment files
+.env*.local
+
+# -- Application rules:
+
+# Application data
 **/data/**/*.sql
+
+# -- Specific to gitignore:
+
+# N/A
