@@ -25,7 +25,7 @@ FROM mariadb_upstream AS app_database
 # --
 # Importer script image
 
-FROM mariadb:${MARIADB_VERSION} AS app_importer
+FROM mariadb_upstream AS app_importer
 
 # Set app directory
 WORKDIR /app
