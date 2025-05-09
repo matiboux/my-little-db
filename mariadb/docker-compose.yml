@@ -2,6 +2,10 @@
 
 x-common:
 
+  db-build-args: &db-build-args
+    MARIADB_IMAGE: ${MARIADB_IMAGE:-mariadb}
+    MARIADB_VERSION: ${MARIADB_VERSION:-lts}
+
   db-environment: &db-environment
     MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
 
@@ -21,7 +25,7 @@ services:
       dockerfile: Dockerfile
       target: app_database
       args:
-        MARIADB_VERSION: ${MARIADB_VERSION:-lts}
+        <<: [ *db-build-args ]
     # Deploy
     environment:
       <<: [ *db-environment ]
@@ -41,7 +45,7 @@ services:
       dockerfile: Dockerfile
       target: app_importer
       args:
-        MARIADB_VERSION: ${MARIADB_VERSION:-lts}
+        <<: [ *db-build-args ]
     # Deploy
     depends_on:
       db:
