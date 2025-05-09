@@ -6,13 +6,14 @@
 # --
 # Global build arguments
 
+ARG MARIADB_IMAGE='mariadb'
 ARG MARIADB_VERSION='lts'
 
 
 # --
 # Upstream images
 
-FROM mariadb:${MARIADB_VERSION} AS mariadb_upstream
+FROM ${MARIADB_IMAGE}:${MARIADB_VERSION} AS mariadb_upstream
 
 
 # --

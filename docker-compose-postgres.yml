@@ -1,60 +1,20 @@
 # Services definition for building & deploying
 
-x-common:
-
-  db-build-args: &db-build-args
-    POSTGRES_IMAGE: ${POSTGRES_IMAGE:-bitnami/postgresql}
-    POSTGRES_VERSION: ${POSTGRES_VERSION:-latest}
-
-  db-environment: &db-environment
-    POSTGRESQL_PORT_NUMBER: ${DB_DOCKER_PORT:-5432}
-    POSTGRESQL_DATABASE: ${DB_NAME:-db}
-    POSTGRES_USERNAME: ${DB_USER:-postgres}
-    POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-
-  db-importer-environment: &db-importer-environment
-    DB_HOST: db
-    DB_PORT: ${DB_DOCKER_PORT:-5432}
-    DB_NAME: ${DB_NAME:-db}
-    DB_USER: ${DB_USER:-postgres}
-    DB_PASSWORD: ${DB_PASSWORD:-postgres}
-
 services:
 
   db:
-    # Build
-    build:
-      context: ./postgres
-      dockerfile: Dockerfile
-      target: app_database
-      args:
-        <<: [ *db-build-args ]
-    # Deploy
-    environment:
-      <<: [ *db-environment ]
-    healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${DB_USER:-postgres}" ]
-      interval: 20s
-      timeout: 10s
-      retries: 10
-      start_period: 20s
-    ports:
-      - ${DB_PORT:-5432}:${DB_DOCKER_PORT:-5432}
+    # Extend
+    extends:
+      file: ./postgres/docker-compose.yml
+      service: db
 
   importer:
-    # Build
-    build:
-      context: ./postgres
-      dockerfile: Dockerfile
-      target: app_importer
-      args:
-        <<: [ *db-build-args ]
+    # Extend
+    extends:
+      file: ./postgres/docker-compose.yml
+      service: importer
     # Deploy
     depends_on:
       db:
         condition: service_healthy
         restart: true
-    environment:
-      <<: [ *db-importer-environment ]
-    volumes:
-      - ./postgres/data:/app/data

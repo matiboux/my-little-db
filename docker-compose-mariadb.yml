@@ -1,53 +1,20 @@
 # Services definition for building & deploying
 
-x-common:
-
-  db-environment: &db-environment
-    MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
-
-  db-importer-environment: &db-importer-environment
-    DB_HOST: db
-    DB_PORT: 3306
-    DB_NAME: ${DB_NAME:-db}
-    DB_USER: root
-    DB_PASSWORD: ${DB_PASSWORD:-root}
-
 services:
 
   db:
-    # Build
-    build:
-      context: ./mariadb
-      dockerfile: Dockerfile
-      target: app_database
-      args:
-        MARIADB_VERSION: ${MARIADB_VERSION:-lts}
-    # Deploy
-    environment:
-      <<: [ *db-environment ]
-    healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    ports:
-      - ${DB_PORT:-3306}:3306
+    # Extend
+    extends:
+      file: ./mariadb/docker-compose.yml
+      service: db
 
   importer:
-    # Build
-    build:
-      context: ./mariadb
-      dockerfile: Dockerfile
-      target: app_importer
-      args:
-        MARIADB_VERSION: ${MARIADB_VERSION:-lts}
+    # Extend
+    extends:
+      file: ./mariadb/docker-compose.yml
+      service: importer
     # Deploy
     depends_on:
       db:
         condition: service_healthy
         restart: true
-    environment:
-      <<: [ *db-importer-environment ]
-    volumes:
-      - ./mariadb/data:/app/data
