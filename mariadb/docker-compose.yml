@@ -31,10 +31,10 @@ services:
       <<: [ *db-environment ]
     healthcheck:
       test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
     ports:
       - ${DB_PORT:-3306}:3306
 
