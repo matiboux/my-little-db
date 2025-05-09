@@ -21,14 +21,13 @@ FROM mariadb_upstream AS app_database
 # --
 # Importer script image
 
-FROM mariadb_upstream AS app_importer
+FROM mariadb:${MARIADB_VERSION} AS app_importer
 
 WORKDIR /app
-
-# Copy the start scripts
-COPY --link ./importer.sh .
 
 # Data should be mounted as a volume
 VOLUME /app/data
 
+# Start script
+COPY --link --chmod=755 ./importer.sh .
 CMD [ "./importer.sh" ]

@@ -1,35 +1,38 @@
-version: '3.8'
 services:
 
   db:
     # Build
     build:
-      context: ../mariadb
+      context: ./mariadb
       dockerfile: Dockerfile
       target: app_database
       args:
-        MARIADB_VERSION: ${MARIADB_VERSION:-11.5}
+        MARIADB_VERSION: ${MARIADB_VERSION:-lts}
     # Deploy
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
-    ports:
-    - "${DB_PORT:-3306}:3306"
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
       start_period: 10s
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+    ports:
+      - ${DB_PORT:-3306}:3306
 
   importer:
     # Build
     build:
-      context: ../mariadb
+      context: ./mariadb
       dockerfile: Dockerfile
       target: app_importer
       args:
-        MARIADB_VERSION: ${MARIADB_VERSION:-11.5}
+        MARIADB_VERSION: ${MARIADB_VERSION:-lts}
     # Deploy
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: false
     environment:
       DB_USER: root
       DB_PASSWORD: ${DB_PASSWORD:-root}
@@ -37,8 +40,4 @@ services:
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-db}
     volumes:
-    - ../mariadb/data:/app/data
-    depends_on:
-      db:
-        condition: service_healthy
-        restart: false
+      - ./mariadb/data:/app/data
