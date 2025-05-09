@@ -1,3 +1,17 @@
+# Services definition for building & deploying
+
+x-common:
+
+  db-environment: &db-environment
+    MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+
+  db-importer-environment: &db-importer-environment
+    DB_HOST: db
+    DB_PORT: 3306
+    DB_NAME: ${DB_NAME:-db}
+    DB_USER: root
+    DB_PASSWORD: ${DB_PASSWORD:-root}
+
 services:
 
   db:
@@ -10,7 +24,7 @@ services:
         MARIADB_VERSION: ${MARIADB_VERSION:-lts}
     # Deploy
     environment:
-      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      <<: [ *db-environment ]
     healthcheck:
       test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
       start_period: 10s
@@ -34,10 +48,6 @@ services:
         condition: service_healthy
         restart: false
     environment:
-      DB_USER: root
-      DB_PASSWORD: ${DB_PASSWORD:-root}
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_NAME: ${DB_NAME:-db}
+      <<: [ *db-importer-environment ]
     volumes:
       - ./mariadb/data:/app/data
