@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 DB_ARGS="-U $DB_USER -h $DB_HOST -p $DB_PORT"
 
 # Wait for the database to be ready
@@ -23,32 +25,78 @@ if [ "$attempt_n" -ge 5 ]; then
 	exit 1
 fi
 
-# Create the database
-echo "Creating the database..."
-PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -c "CREATE DATABASE \"$DB_NAME\";"
+# List root SQL files
+root_sql_files=$(find ./data -maxdepth 1 -type f -name '*.sql' | sort)
 
-# Import all the SQL files in the data directory
-for sql_file in ./data/*.sql; do
-	echo "Importing $sql_file..."
-	PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -d "$DB_NAME" -f "$sql_file"
-done
+if [ -n "$root_sql_files" ]; then
 
-# Import data from subdirectories in separate databases
-for dir in ./data/*/; do
+	# Create the database if it does not exist
+	if ! PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -lqt | cut -d \| -f 1 | grep -qw "$DB_NAME"; then
+		echo "Creating database '$DB_NAME'..."
+		PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -c "CREATE DATABASE \"$DB_NAME\";"
+	fi
 
-	# Use the directory name as the database name
-	dir_name=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g')
-
-	# Create the database
-	echo "Creating database $dir_name..."
-	PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -c "CREATE DATABASE \"$dir_name\";"
-
-	# Import all the SQL files in the directory
-	for sql_file in "$dir"*.sql; do
-		echo "Importing $sql_file..."
-		PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -d "$dir_name" -f "$sql_file"
+	# Import root SQL files in the database
+	for sql_file in $root_sql_files; do
+		echo "Importing '$sql_file'..."
+		PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -d "$DB_NAME" -f "$sql_file"
 	done
 
-done
+fi
+
+# List subdirectories for other databases to import
+root_dirs=$(find ./data -mindepth 1 -maxdepth 1 -type d | sort)
+
+if [ -n "$root_dirs" ]; then
+
+	echo "$root_dirs" | while IFS= read -r dir; do
+
+		# List SQL files in the subdirectory
+		dir_sql_files=$(find "$dir" -maxdepth 1 -type f -name '*.sql' | sort)
+
+		if [ -n "$dir_sql_files" ]; then
+
+			# Create the database, from the slugified directory name, if it does not exist
+			dir_name=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g')
+			if ! PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -lqt | cut -d \| -f 1 | grep -qw "$dir_name"; then
+				echo "Creating database '$dir_name'..."
+				PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -c "CREATE DATABASE \"$dir_name\";"
+			fi
+
+			# Import all the SQL files in the directory
+			echo $dir_sql_files | while IFS= read -r sql_file; do
+				echo "Importing '$sql_file'..."
+				if head -c 5 "$sql_file" | grep -q "PGDMP"; then
+					# Use pg_restore for PostgreSQL dump files
+
+					# Search for users to create in the PostgreSQL dump file
+					users=$(grep -oP --binary-files=text "GRANT ALL ON DATABASE .+ TO \K[^;]+" "$sql_file" | sort -u)
+					if [ -n "$users" ]; then
+						for user in $users; do
+							# Create the user if it does not exist
+							if ! PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -c "\du" | cut -d \| -f 1 | grep -qw "$user"; then
+								echo "Creating user '$user'..."
+								PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -c "CREATE USER \"$user\";"
+							fi
+						done
+					fi
+
+					# Load the dump file into the database
+					PGPASSWORD=$DB_PASSWORD pg_restore $DB_ARGS -d "$dir_name" --no-owner --clean --if-exists "$sql_file"
+
+				else
+					# Use psql for regular SQL files
+
+					# Load the SQL file into the database
+					PGPASSWORD=$DB_PASSWORD psql $DB_ARGS -d "$dir_name" -f "$sql_file"
+
+				fi
+			done
+
+		fi
+
+	done
+
+fi
 
 echo "Database data import complete!"
