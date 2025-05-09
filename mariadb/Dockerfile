@@ -4,9 +4,13 @@
 
 
 # --
-# Upstream images
+# Global build arguments
 
-ARG MARIADB_VERSION='11.5'
+ARG MARIADB_VERSION='lts'
+
+
+# --
+# Upstream images
 
 FROM mariadb:${MARIADB_VERSION} AS mariadb_upstream
 
@@ -23,6 +27,7 @@ FROM mariadb_upstream AS app_database
 
 FROM mariadb:${MARIADB_VERSION} AS app_importer
 
+# Set app directory
 WORKDIR /app
 
 # Data should be mounted as a volume
