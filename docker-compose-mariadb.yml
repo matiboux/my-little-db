@@ -1,0 +1,20 @@
+# Services definition for building & deploying
+
+services:
+
+  db:
+    # Extend
+    extends:
+      file: ./mariadb/docker-compose.yml
+      service: db
+
+  importer:
+    # Extend
+    extends:
+      file: ./mariadb/docker-compose.yml
+      service: importer
+    # Deploy
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
