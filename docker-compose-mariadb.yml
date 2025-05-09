@@ -46,7 +46,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-        restart: false
+        restart: true
     environment:
       <<: [ *db-importer-environment ]
     volumes:
